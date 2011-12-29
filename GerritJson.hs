@@ -21,13 +21,13 @@ data GerritJsonRes = GerritJsonC Change | GerritJsonStats Stats deriving (Eq, Sh
 data Stats = Stats Int deriving (Eq, Show)
 
 data Change = Change {
-  changeId :: Int,
-  url :: String,
-  project :: String,
-  branch :: String,
-  sortKey :: String,
-  owner :: Author,
-  revs :: [Rev]
+    changeId :: Int
+  , url :: String
+  , project :: String
+  , branch :: String
+  , sortKey :: String
+  , owner :: Author
+  , revs :: [Rev]
   } deriving (Eq, Show)
 
 instance Ord Change where
@@ -38,16 +38,17 @@ data Author = Author { name :: String, email :: Maybe String } deriving (Eq, Ord
 data ReviewType = Crvw | Subm | Vrif deriving (Eq, Show)
 
 data Approval = Approval {
-  approvalType :: ReviewType,
-  value :: Int,
-  grantedOn :: UTCTime,
-  approver :: Author
+    approvalType :: ReviewType
+  , value :: Int
+  , grantedOn :: UTCTime
+  , approver :: Author
   } deriving (Eq, Show)
 
 data Rev = Rev {
-  revId :: Int,
-  uploader :: Author,
-  approvals :: [Approval]} deriving (Eq, Show)
+    revId :: Int
+  , uploader :: Author
+  , approvals :: [Approval]
+  } deriving (Eq, Show)
 
 jslookupConv :: JSON a => (a -> b) -> String -> JSObject JSValue -> Result b
 jslookupConv f a o =
