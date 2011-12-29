@@ -1,1 +1,13 @@
 Haskell code to parse Gerrit's JSON responses from the query command
+
+BSD license.
+
+Requires the text.JSON package for JSON parsing.  I think this is
+included in the Haskell platform.
+
+Code provided as-is.  It's not written to be very generic and probably
+not good at handling errors.
+
+To run it:
+
+runhaskell Test.hs <gerrit server name>
