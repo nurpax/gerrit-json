@@ -1,5 +1,5 @@
 
-module GerritJson (
+module GerritJson.Json (
     GerritJsonRes(..)
   , Stats(..)
   , Change(..)

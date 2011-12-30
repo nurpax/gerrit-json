@@ -9,7 +9,7 @@ import Control.Monad (filterM)
 import Data.Function (on)
 import Data.List (sortBy)
 
-import GerritJson
+import GerritJson.Json
 
 pickChanges :: [Either String GerritJsonRes] -> [Change]
 pickChanges = mapMaybe pickChange where
