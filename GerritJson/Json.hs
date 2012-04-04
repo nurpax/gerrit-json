@@ -10,9 +10,9 @@ module GerritJson.Json (
   , decodeGerritJson
   ) where
 
+import Control.Applicative
 import Data.Time (UTCTime)
 import Data.Time.Format (readTime)
-import Data.Maybe (fromMaybe)
 import System.Locale (defaultTimeLocale)
 import Text.JSON
 
@@ -50,39 +50,11 @@ data Rev = Rev {
   , approvals :: [Approval]
   } deriving (Eq, Show)
 
-jslookupConv :: JSON a => (a -> b) -> String -> JSObject JSValue -> Result b
-jslookupConv f a o =
-  maybe (fail $ "No such element: " ++ a) (convResult . readJSON) $ lookup a $ fromJSObject o
-  where convResult (Ok j) = Ok $ f j
-        convResult (Error e) = Error e
-
-jslookupConvOrMissing :: JSON a => (a -> b) -> (Maybe b -> c) -> String -> JSObject JSValue -> Result c
-jslookupConvOrMissing f handleMissing a o =
-  let a' = lookup a $ fromJSObject o
-  in case a' of
-    Just v ->
-      (convResult . readJSON) v
-      where convResult (Ok j) = Ok (handleMissing $ Just $ f j)
-            convResult (Error e) = Error e
-    Nothing ->
-      Ok (handleMissing Nothing)
-
-jslookup :: JSON a => String -> JSObject JSValue -> Result a
-jslookup = jslookupConv id
-
-jslookupOrEmpty :: String -> JSObject JSValue -> Result (Maybe String)
-jslookupOrEmpty = jslookupConvOrEmpty id
-
-jslookupConvOrEmpty :: JSON a => (a -> b) -> String -> JSObject JSValue -> Result (Maybe b)
-jslookupConvOrEmpty f = jslookupConvOrMissing f id
-
 instance JSON Author where
-  readJSON (JSObject obj) =
-    do
-      n <- jslookup "name" obj
-      e <- jslookupOrEmpty "email" obj
-      return Author { name = n, email = e }
-  readJSON _ = error "unimplemented"
+  readJSON object = do
+    obj <- readJSON object
+    Author <$> (valFromObj "name" obj)
+           <*> (valFromObj "email" obj <|> pure Nothing)
   showJSON _ = error "unimplemented"
 
 toApproval :: String -> ReviewType
@@ -95,58 +67,38 @@ fromUnixTime :: Int -> UTCTime
 fromUnixTime = readTime defaultTimeLocale "%s" . show
 
 instance JSON Approval where
-  readJSON (JSObject obj) =
-    do
-      at <- jslookupConv toApproval "type"  obj
-      value_ <- jslookupConv read "value" obj
-      approver_ <- jslookup "by" obj
-      grantedOn_ <- jslookupConv fromUnixTime "grantedOn" obj
-      return Approval { approvalType = at,
-                        value = value_,
-                        grantedOn = grantedOn_,
-                        approver = approver_}
-  readJSON _ = error "unimplemented"
+  readJSON object = do
+    obj <- readJSON object
+    Approval <$> (toApproval <$> valFromObj "type" obj)
+             <*> (read <$> valFromObj "value" obj)
+             <*> (fromUnixTime <$> valFromObj "grantedOn" obj)
+             <*> valFromObj "by" obj
   showJSON _ = error "unimplemented"
 
 instance JSON Rev where
-  readJSON (JSObject obj) =
-    do
-      revId_ <- jslookupConv read "number" obj
-      uploader_ <- jslookup "uploader" obj
-      approvals_ <- jslookupConvOrMissing id (fromMaybe []) "approvals" obj
-      return Rev {
-        revId = revId_,
-        uploader = uploader_,
-        approvals = approvals_
-        }
-  readJSON _ = error "unimplemented"
+  readJSON object = do
+    obj <- readJSON object
+    Rev <$> read <$> valFromObj "number" obj
+        <*> valFromObj "uploader" obj
+        <*> (valFromObj "approvals" obj <|> pure [])
   showJSON _ = error "unimplemented"
 
 instance JSON Change where
-  readJSON (JSObject obj) =
-    do
-      changeId_ <- jslookupConv read "number" obj
-      project_ <- jslookup "project" obj
-      branch_ <- jslookup "branch" obj
-      sortKey_ <- jslookup "sortKey" obj
-      owner_ <- jslookup "owner" obj
-      revs_ <- jslookup "patchSets" obj
-      url_ <- jslookup "url" obj
-      return Change {
-        changeId = changeId_, project = project_, branch = branch_, sortKey = sortKey_,
-        owner = owner_,
-        revs = revs_, url = url_
-        }
-  readJSON _ = error "unimplemented"
+  readJSON object = do
+    obj <- readJSON object
+    Change <$> (read <$> valFromObj "number" obj)
+           <*> valFromObj "url" obj
+           <*> valFromObj "project" obj
+           <*> valFromObj "branch" obj
+           <*> valFromObj "sortKey" obj
+           <*> valFromObj "owner" obj
+           <*> valFromObj "patchSets" obj
   showJSON _ = error "unimplemented"
 
 instance JSON Stats where
-  readJSON (JSObject obj) =
-    do
-      f <- jslookup "rowCount" obj
-      return $ Stats f
-  readJSON _ = error "unimplemented"
-
+  readJSON object = do
+    obj <- readJSON object
+    Stats <$> valFromObj "rowCount" obj
   showJSON _ = error "unimplemented"
 
 
