@@ -107,16 +107,9 @@ instance JSON Stats where
 -- always at the end and pretty much contains only the row count for
 -- our query.
 instance JSON GerritJsonRes where
-  readJSON o@(JSObject obj) =
-    if any (("project" ==) . fst) (fromJSObject obj) then
-      fmap GerritJsonC (readJSON o) else
-      fmap GerritJsonStats (readJSON o)
-
-  readJSON _ = error "unimplemented"
+  readJSON object = do
+    (GerritJsonC <$> readJSON object) <|> (GerritJsonStats <$> readJSON object)
   showJSON _ = error "unimplemented"
 
 decodeGerritJson :: String -> IO (Either String GerritJsonRes)
-decodeGerritJson text =
-  do
-    let j = decode text
-    return (resultToEither j)
+decodeGerritJson = return . resultToEither . decode
