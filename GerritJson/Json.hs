@@ -53,7 +53,7 @@ data Rev = Rev {
 instance JSON Author where
   readJSON object = do
     obj <- readJSON object
-    Author <$> (valFromObj "name" obj)
+    Author <$> valFromObj "name" obj
            <*> (valFromObj "email" obj <|> pure Nothing)
   showJSON _ = error "unimplemented"
 
