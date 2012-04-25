@@ -35,7 +35,7 @@ instance Ord Change where
 
 data Author = Author { name :: String, email :: Maybe String } deriving (Eq, Ord, Show)
 
-data ReviewType = Crvw | Subm | Vrif deriving (Eq, Show)
+data ReviewType = Crvw | Subm | Vrif | User String deriving (Eq, Show)
 
 data Approval = Approval {
     approvalType :: ReviewType
@@ -61,7 +61,7 @@ toApproval :: String -> ReviewType
 toApproval "CRVW" = Crvw
 toApproval "SUBM" = Subm
 toApproval "VRIF" = Vrif
-toApproval _ = error "unknown review type"
+toApproval x = User x
 
 fromUnixTime :: Int -> UTCTime
 fromUnixTime = readTime defaultTimeLocale "%s" . show
