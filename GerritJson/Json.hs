@@ -35,7 +35,7 @@ instance Ord Change where
 
 data Author = Author { name :: String, email :: Maybe String } deriving (Eq, Ord, Show)
 
-data ReviewType = Crvw | Subm | Vrif | User String deriving (Eq, Show)
+data ReviewType = Crvw | Subm | Vrif | User String deriving (Eq, Show, Ord)
 
 data Approval = Approval {
     approvalType :: ReviewType
