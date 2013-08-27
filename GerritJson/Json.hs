@@ -33,7 +33,10 @@ data Change = Change {
 instance Ord Change where
   (<=) a b = changeId a <= changeId b
 
-data Author = Author { name :: String, email :: Maybe String } deriving (Eq, Ord, Show)
+data Author = Author {
+    name :: String
+  , email :: Maybe String
+  } deriving (Eq, Ord, Show)
 
 data ReviewType = Crvw | Subm | Vrif | User String deriving (Eq, Show, Ord)
 
@@ -58,10 +61,12 @@ instance JSON Author where
   showJSON _ = error "unimplemented"
 
 toApproval :: String -> ReviewType
-toApproval "CRVW" = Crvw
-toApproval "SUBM" = Subm
-toApproval "VRIF" = Vrif
-toApproval x = User x
+toApproval "CRVW"        = Crvw
+toApproval "Code-Review" = Crvw
+toApproval "SUBM"        = Subm
+toApproval "VRIF"        = Vrif
+toApproval "Verified"    = Vrif
+toApproval x             = User x
 
 fromUnixTime :: Int -> UTCTime
 fromUnixTime = readTime defaultTimeLocale "%s" . show
